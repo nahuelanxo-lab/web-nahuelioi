@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+export async function getStaticPaths() {
+  const proyectos = await getCollection('proyectos');
+  return proyectos.map(p => ({ params: { id: p.id }, props: { p } }));
+}
+const { p } = Astro.props;
+const { Content } = await render(p);
+const d = p.data;
+---
+<Base title={`${d.titulo} · ${d.cliente}`} description={`${d.titulo} para ${d.cliente}. ${d.rol.join(', ')} (${d.año}).`}>
+  <article>
+    <h1>{d.titulo}</h1>
+    <!-- Reproductor de vídeo: pendiente de decidir alojamiento (Bunny/Vimeo) -->
+    <dl class="ficha">
+      <dt>Cliente</dt><dd>{d.cliente}</dd>
+      {d.productora && <><dt>Productora / Agencia</dt><dd>{d.productora}</dd></>}
+      <dt>Rol</dt><dd>{d.rol.join(', ')}</dd>
+      <dt>Año</dt><dd>{d.año}</dd>
+    </dl>
+    <Content />
+    <p><a href="/trabajos/">← Todos los trabajos</a></p>
+  </article>
+</Base>
+<style>
+  .ficha { display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1.5rem; }
+  .ficha dt { color: var(--muted); }
+  .ficha dd { margin: 0; }
+</style>

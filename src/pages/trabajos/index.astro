@@ -1,0 +1,22 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+const proyectos = (await getCollection('proyectos')).sort((a, b) => b.data.año - a.data.año);
+---
+<Base title="Trabajos" description="Selección de trabajos: dirección de fotografía, cámara y fotografía para productoras, agencias y marcas.">
+  <h1>Trabajos</h1>
+  <ul class="lista">
+    {proyectos.map(p => (
+      <li data-categoria={p.data.categoria}>
+        <a href={`/trabajos/${p.id}/`}>
+          <strong>{p.data.titulo}</strong>
+          <span class="muted">{p.data.cliente}{p.data.productora && ` · ${p.data.productora}`} · {p.data.rol.join(', ')} · {p.data.año}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</Base>
+<style>
+  .lista { list-style: none; padding: 0; display: grid; gap: 1rem; }
+  .lista a { display: flex; flex-direction: column; text-decoration: none; }
+</style>

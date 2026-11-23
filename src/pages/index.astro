@@ -1,0 +1,30 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+const destacados = (await getCollection('proyectos', p => p.data.destacado))
+  .sort((a, b) => b.data.año - a.data.año);
+---
+<Base>
+  <section class="hero">
+    <!-- Aquí irá el showreel -->
+    <h1>Dirección de fotografía y cámara</h1>
+    <p class="muted">Para productoras, agencias y marcas.</p>
+    <a href="/trabajos/">Ver trabajos</a> · <a href="/contacto/">Hablemos</a>
+  </section>
+  <section>
+    <h2>Trabajos destacados</h2>
+    <ul class="grid">
+      {destacados.map(p => (
+        <li><a href={`/trabajos/${p.id}/`}>
+          <strong>{p.data.titulo}</strong>
+          <span class="muted">{p.data.cliente} · {p.data.rol.join(', ')} · {p.data.año}</span>
+        </a></li>
+      ))}
+    </ul>
+  </section>
+</Base>
+<style>
+  .hero { min-height: 60vh; display: flex; flex-direction: column; justify-content: center; }
+  .grid { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+  .grid a { display: flex; flex-direction: column; gap: .3rem; text-decoration: none; }
+</style>

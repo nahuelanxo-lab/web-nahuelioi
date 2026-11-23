@@ -1,0 +1,44 @@
+---
+interface Props { title?: string; description?: string }
+const {
+  title = 'Nahuel Ioi — Dirección de fotografía y vídeo',
+  description = 'Director de fotografía y operador de cámara. Vídeo y fotografía para productoras, agencias y marcas.',
+} = Astro.props;
+const fullTitle = title.includes('Nahuel') ? title : `${title} — Nahuel Ioi`;
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+  </head>
+  <body>
+    <header class="site-header">
+      <a href="/" class="logo">Nahuel Ioi</a>
+      <nav>
+        <a href="/trabajos/">Trabajos</a>
+        <a href="/sobre-mi/">Sobre mí</a>
+        <a href="/contacto/">Contacto</a>
+      </nav>
+    </header>
+    <main><slot /></main>
+    <footer class="site-footer">
+      <p>© {new Date().getFullYear()} Nahuel Ioi · <a href="/contacto/">Contacto</a></p>
+    </footer>
+    <style is:global>
+      /* Estilos provisionales: la dirección visual se define después del moodboard */
+      :root { --bg: #0e0e0e; --fg: #f2f2f2; --muted: #9a9a9a; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; }
+      a { color: inherit; }
+      .site-header, .site-footer { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; }
+      .site-header nav { display: flex; gap: 1.5rem; }
+      .site-header a, .site-footer a { text-decoration: none; }
+      main { padding: 0 2rem 4rem; max-width: 1400px; margin: 0 auto; }
+      .muted { color: var(--muted); }
+    </style>
+  </body>
+</html>
