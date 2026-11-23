@@ -1,0 +1,19 @@
+---
+import type { Proyecto } from '../lib/proyectos';
+interface Props { p: Proyecto }
+const d = Astro.props.p.data;
+---
+<dl class="ficha">
+  {d.rol.length > 0 && <div><dt class="etiqueta">Rol</dt><dd>{d.rol.join(', ')}</dd></div>}
+  <div><dt class="etiqueta">Cliente</dt><dd>{d.cliente}</dd></div>
+  {d.productora && <div><dt class="etiqueta">Productora</dt><dd>{d.productora}</dd></div>}
+  {d.año && <div><dt class="etiqueta">Año</dt><dd>{d.año}</dd></div>}
+  {d.camara && <div><dt class="etiqueta">Cámara</dt><dd>{d.camara}</dd></div>}
+  {d.creditos && <div class="ancho"><dt class="etiqueta">Créditos</dt><dd>{d.creditos}</dd></div>}
+</dl>
+<style>
+  .ficha { display: flex; flex-wrap: wrap; gap: 1.25rem 3rem; margin: 1.5rem 0 0; }
+  .ficha .ancho { flex-basis: 100%; }
+  .ficha dt { margin-bottom: .3rem; }
+  .ficha dd { margin: 0; }
+</style>

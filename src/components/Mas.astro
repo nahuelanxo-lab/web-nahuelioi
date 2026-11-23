@@ -1,0 +1,23 @@
+---
+import Rejilla from './Rejilla.astro';
+import type { Proyecto } from '../lib/proyectos';
+interface Props { lista: Proyecto[]; actual: Proyecto; titulo: string; enlace: string }
+const { lista, actual, titulo, enlace } = Astro.props;
+const i = lista.findIndex((p) => p.id === actual.id);
+const mismos = lista.filter((p) => p.id !== actual.id && p.data.categoria === actual.data.categoria);
+const resto = lista.filter((p) => p.id !== actual.id && p.data.categoria !== actual.data.categoria);
+const orden = [...mismos.slice(Math.max(0, i)), ...mismos.slice(0, Math.max(0, i)), ...resto];
+const sel = orden.slice(0, 3);
+---
+{sel.length > 0 && (
+  <section class="mas">
+    <div class="cab"><h2 class="etiqueta">Más trabajos</h2><a class="etiqueta" href={enlace}>{titulo} →</a></div>
+    <Rejilla proyectos={sel} columnas={3} />
+  </section>
+)}
+<style>
+  .mas { margin-top: clamp(4rem, 10vw, 7rem); padding-top: 1.25rem; border-top: 1px solid var(--linea); }
+  .cab { display: flex; justify-content: space-between; margin-bottom: 1.25rem; }
+  .cab h2 { margin: 0; font-weight: 450; }
+  .cab a:hover { color: var(--fg); }
+</style>

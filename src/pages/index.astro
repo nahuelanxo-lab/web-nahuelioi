@@ -1,25 +1,87 @@
 ---
 import Base from '../layouts/Base.astro';
-import ListaProyectos from '../components/ListaProyectos.astro';
-import { publicados } from '../lib/proyectos';
+import Rejilla from '../components/Rejilla.astro';
+import { publicados, videos, fotos } from '../lib/proyectos';
 const todos = await publicados();
 const destacados = todos.filter((p) => p.data.destacado);
+const diapos = destacados.map((p) => p.data.poster).filter(Boolean) as string[];
+const listaFotos = await fotos();
+const portadaVideo = destacados[0]?.data.poster;
+const portadaFoto = listaFotos.find((p) => p.id.includes('rande'))?.data.galeria?.[1] ?? listaFotos[0]?.data.poster;
+const nVideo = (await videos()).length;
 ---
-<Base>
-  <section class="intro">
-    <!-- Aquí irá el showreel en bucle (pendiente) -->
-    <p class="lema">Dirección de fotografía y cámara para publicidad, videoclips y piezas de marca. Trabajo con productoras y agencias desde Galicia.</p>
-    <p class="etiqueta">Con VisualVR · TreceAmarillo · MINT · Fish&amp;Rock · DYR · Modelocero</p>
+<Base completo>
+  <section class="hero" aria-label="Selección de imágenes">
+    <!-- Cuando esté el showreel: sustituir las diapositivas por <video autoplay muted loop playsinline> -->
+    {diapos.map((src, i) => <img class:list={['diapo', { on: i === 0 }]} src={src} alt="" loading={i < 2 ? 'eager' : 'lazy'} />)}
+    <div class="velo"></div>
+    <div class="hero-txt">
+      <p class="lema">Director de fotografía y cámara.<br /><span class="tenue">Publicidad, videoclips y fotografía desde Galicia.</span></p>
+      <div class="botones">
+        <a href="/video/">Ver vídeo</a>
+        <a href="/fotografia/">Ver fotografía</a>
+      </div>
+    </div>
   </section>
 
-  <h1 class="etiqueta seccion">Selección</h1>
-  <ListaProyectos proyectos={destacados} agrupar={false} />
-  <p class="mas"><a href="/trabajos/">Todos los trabajos <span class="tenue">({todos.length})</span> →</a></p>
+  <section class="bloque">
+    <div class="cab-bloque"><h2 class="etiqueta">Selección</h2><a class="etiqueta" href="/video/">Todo el vídeo ({nVideo}) →</a></div>
+    <Rejilla proyectos={destacados} columnas={2} />
+  </section>
+
+  <section class="bloque secciones">
+    <a href="/video/" class="seccion">
+      {portadaVideo && <img src={portadaVideo} alt="" loading="lazy" />}
+      <span>Vídeo</span>
+      <small class="etiqueta">Comercial · Videoclips · Eventos</small>
+    </a>
+    <a href="/fotografia/" class="seccion">
+      {portadaFoto && <img src={portadaFoto} alt="" loading="lazy" />}
+      <span>Fotografía</span>
+      <small class="etiqueta">{listaFotos.length} series</small>
+    </a>
+  </section>
+
+  <section class="bloque marcas">
+    <p class="etiqueta">He trabajado con</p>
+    <p class="lista-marcas">VisualVR · TreceAmarillo · MINT · Fish&amp;Rock · DYR · Modelocero · Orixe Creative</p>
+  </section>
 </Base>
 <style>
-  .intro { min-height: 62vh; display: flex; flex-direction: column; justify-content: flex-end; gap: 1.5rem; padding-bottom: 5rem; }
-  .lema { font-size: clamp(1.6rem, 3.6vw, 3.1rem); line-height: 1.08; letter-spacing: -.025em; max-width: 22ch; margin: 0; font-weight: 420; }
-  .seccion { margin: 0 0 1rem; font-weight: 450; }
-  .mas { margin-top: 2rem; font-size: 1.1rem; }
-  .mas a:hover .tenue { color: var(--fg); }
+  .hero { position: relative; height: 100svh; min-height: 520px; overflow: hidden; background: #000; }
+  .diapo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.06); transition: opacity 1.6s ease, transform 7s linear; }
+  .diapo.on { opacity: 1; transform: scale(1); }
+  .velo { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.75) 0%, rgba(0,0,0,.1) 45%, rgba(0,0,0,.25) 100%); }
+  .hero-txt { position: absolute; left: var(--pad); right: var(--pad); bottom: clamp(1.5rem, 5vh, 3.5rem); display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; flex-wrap: wrap; }
+  .lema { margin: 0; font-size: clamp(1.6rem, 3.4vw, 3rem); line-height: 1.05; letter-spacing: -.03em; font-weight: 420; max-width: 22ch; }
+  .lema .tenue { color: rgba(255,255,255,.6); }
+  .botones { display: flex; gap: .6rem; }
+  .botones a { border: 1px solid rgba(255,255,255,.5); border-radius: 999px; padding: .6rem 1.2rem; backdrop-filter: blur(6px); background: rgba(0,0,0,.2); transition: background .2s, color .2s; }
+  .botones a:hover { background: #fff; color: #000; }
+  .bloque { padding: clamp(3rem, 8vw, 6rem) var(--pad) 0; }
+  .cab-bloque { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.25rem; }
+  .cab-bloque h2 { margin: 0; font-weight: 450; }
+  .cab-bloque a:hover { color: var(--fg); }
+  .secciones { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  .seccion { position: relative; aspect-ratio: 4 / 3; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 1.5rem; background: #111; }
+  .seccion img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s cubic-bezier(.2,.7,.2,1); }
+  .seccion::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.6), transparent 55%); }
+  .seccion span, .seccion small { position: relative; z-index: 1; }
+  .seccion span { font-size: clamp(2rem, 5vw, 4rem); letter-spacing: -.035em; line-height: 1; }
+  .seccion small { color: rgba(255,255,255,.75); margin-top: .5rem; }
+  .seccion:hover img { transform: scale(1.04); }
+  .marcas { text-align: center; padding-bottom: 2rem; }
+  .lista-marcas { font-size: clamp(1.1rem, 2.2vw, 1.8rem); letter-spacing: -.02em; color: var(--tenue); max-width: 40ch; margin: .8rem auto 0; line-height: 1.3; }
+  @media (max-width: 640px) { .secciones { grid-template-columns: 1fr; } .botones { width: 100%; } .botones a { flex: 1; text-align: center; } }
 </style>
+<script>
+  const d = [...document.querySelectorAll<HTMLImageElement>('.diapo')];
+  let i = 0;
+  if (d.length > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    setInterval(() => {
+      d[i].classList.remove('on');
+      i = (i + 1) % d.length;
+      d[i].classList.add('on');
+    }, 4500);
+  }
+</script>

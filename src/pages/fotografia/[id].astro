@@ -1,0 +1,77 @@
+---
+import Base from '../../layouts/Base.astro';
+import Ficha from '../../components/Ficha.astro';
+import Mas from '../../components/Mas.astro';
+import { render } from 'astro:content';
+import { fotos, type Proyecto } from '../../lib/proyectos';
+export async function getStaticPaths() {
+  const lista = await fotos();
+  return lista.map((p) => ({ params: { id: p.id }, props: { p, lista } }));
+}
+const { p, lista } = Astro.props as { p: Proyecto; lista: Proyecto[] };
+const { Content } = await render(p);
+const d = p.data;
+const imgs = d.galeria ?? (d.poster ? [d.poster] : []);
+const titulo = `${d.cliente} – ${d.titulo}`;
+---
+<Base title={titulo} description={`${titulo}. Fotografía de Nahuel Lioi.`} image={imgs[0]}>
+  <header class="cab">
+    <p class="etiqueta"><a href="/fotografia/">Fotografía</a> · {imgs.length} fotos</p>
+    <h1>{d.cliente} <span class="tenue">‘{d.titulo}’</span></h1>
+    <Ficha p={p} />
+  </header>
+  <div class="texto"><Content /></div>
+  <div class="galeria">
+    {imgs.map((src, i) => (
+      <button class="foto" data-i={i} aria-label={`Ampliar foto ${i + 1}`}>
+        <img src={src} alt={`${titulo} – foto ${i + 1}`} loading={i < 6 ? 'eager' : 'lazy'} decoding="async" />
+      </button>
+    ))}
+  </div>
+  <dialog class="visor" aria-label="Visor de fotos">
+    <img alt="" />
+    <button class="cerrar" aria-label="Cerrar">×</button>
+    <button class="ant" aria-label="Anterior">←</button>
+    <button class="sig" aria-label="Siguiente">→</button>
+    <span class="cont etiqueta"></span>
+  </dialog>
+  <Mas lista={lista} actual={p} titulo="Toda la fotografía" enlace="/fotografia/" />
+</Base>
+<style>
+  .cab { margin: 16vh 0 2rem; }
+  .cab > p { margin: 0 0 .5rem; }
+  .cab > p a:hover { color: var(--fg); }
+  h1 { font-size: clamp(1.8rem, 4.5vw, 3.8rem); line-height: 1.03; letter-spacing: -.035em; font-weight: 420; margin: 0; }
+  .texto :global(p) { max-width: 60ch; color: #cfcfcf; }
+  .galeria { columns: 3 300px; column-gap: .75rem; }
+  .foto { display: block; width: 100%; padding: 0; margin: 0 0 .75rem; border: 0; background: #0b0b0b; cursor: zoom-in; break-inside: avoid; }
+  .foto img { width: 100%; height: auto; transition: opacity .3s; }
+  .foto:hover img { opacity: .85; }
+  .visor { width: 100vw; height: 100svh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: rgba(0,0,0,.96); color: #fff; }
+  .visor::backdrop { background: #000; }
+  .visor[open] { display: grid; place-items: center; }
+  .visor img { max-width: 92vw; max-height: 88svh; object-fit: contain; }
+  .visor button { position: absolute; background: none; border: 0; color: #fff; font: inherit; font-size: 1.6rem; cursor: pointer; padding: 1rem 1.25rem; opacity: .7; }
+  .visor button:hover { opacity: 1; }
+  .cerrar { top: .5rem; right: .5rem; font-size: 2rem !important; }
+  .ant { left: .5rem; top: 50%; transform: translateY(-50%); }
+  .sig { right: .5rem; top: 50%; transform: translateY(-50%); }
+  .cont { position: absolute; bottom: 1.25rem; left: 50%; transform: translateX(-50%); }
+</style>
+<script>
+  const visor = document.querySelector<HTMLDialogElement>('.visor')!;
+  const img = visor.querySelector('img')!;
+  const cont = visor.querySelector('.cont')!;
+  const fotos = [...document.querySelectorAll<HTMLImageElement>('.foto img')].map((i) => i.src);
+  let i = 0;
+  const ver = (n: number) => { i = (n + fotos.length) % fotos.length; img.src = fotos[i]; cont.textContent = `${i + 1} / ${fotos.length}`; };
+  document.querySelectorAll<HTMLButtonElement>('.foto').forEach((b) => b.addEventListener('click', () => { ver(+b.dataset.i!); visor.showModal(); }));
+  visor.querySelector('.cerrar')!.addEventListener('click', () => visor.close());
+  visor.querySelector('.ant')!.addEventListener('click', () => ver(i - 1));
+  visor.querySelector('.sig')!.addEventListener('click', () => ver(i + 1));
+  visor.addEventListener('click', (e) => { if (e.target === visor) visor.close(); });
+  addEventListener('keydown', (e) => { if (!visor.open) return; if (e.key === 'ArrowRight') ver(i + 1); if (e.key === 'ArrowLeft') ver(i - 1); });
+  let x0 = 0;
+  visor.addEventListener('touchstart', (e) => (x0 = e.touches[0].clientX), { passive: true });
+  visor.addEventListener('touchend', (e) => { const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) ver(i + (dx < 0 ? 1 : -1)); });
+</script>

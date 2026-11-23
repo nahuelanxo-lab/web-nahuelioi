@@ -1,0 +1,54 @@
+---
+import Tarjeta from './Tarjeta.astro';
+import type { Proyecto } from '../lib/proyectos';
+interface Props { proyectos: Proyecto[]; columnas?: 2 | 3; filtros?: Record<string, string> }
+const { proyectos, columnas = 3, filtros } = Astro.props;
+---
+{filtros && (
+  <nav class="filtros" aria-label="Filtrar">
+    <button class="activo" data-filtro="todo">Todo</button>
+    {Object.entries(filtros).map(([c, n]) => {
+      const t = proyectos.filter((p) => p.data.categoria === c).length;
+      return t > 0 && <button data-filtro={c}>{n} <sup>{t}</sup></button>;
+    })}
+  </nav>
+)}
+<div class:list={['rejilla', `c${columnas}`]} data-rejilla>
+  {proyectos.map((p, i) => <Tarjeta p={p} grande={columnas === 2} carga={i < 6 ? 'eager' : 'lazy'} />)}
+</div>
+<style>
+  .filtros { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 2rem; }
+  .filtros button { font: inherit; font-size: .95rem; color: var(--tenue); background: none; border: 1px solid var(--linea); border-radius: 999px; padding: .45rem 1rem; cursor: pointer; transition: color .2s, border-color .2s, background .2s; }
+  .filtros button:hover { color: var(--fg); border-color: #555; }
+  .filtros button.activo { color: #000; background: #fff; border-color: #fff; }
+  .filtros sup { font-size: .6em; }
+  .rejilla { display: grid; gap: 2.5rem 1.25rem; }
+  .c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem 1.5rem; }
+  @media (max-width: 1000px) { .c3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .c3, .c2 { grid-template-columns: 1fr; gap: 2rem; } }
+</style>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-rejilla]').forEach((rej) => {
+    const nav = rej.previousElementSibling;
+    const botones = nav?.matches('.filtros') ? [...nav.querySelectorAll<HTMLButtonElement>('[data-filtro]')] : [];
+    const aplicar = (f: string) => {
+      botones.forEach((b) => b.classList.toggle('activo', b.dataset.filtro === f));
+      rej.querySelectorAll<HTMLElement>('[data-cat]').forEach((t) => (t.hidden = f !== 'todo' && t.dataset.cat !== f));
+    };
+    botones.forEach((b) => b.addEventListener('click', () => {
+      const f = b.dataset.filtro!;
+      aplicar(f);
+      history.replaceState(null, '', f === 'todo' ? location.pathname : `#${f}`);
+    }));
+    const h = location.hash.slice(1);
+    if (h && botones.some((b) => b.dataset.filtro === h)) aplicar(h);
+    // Vídeo de vista previa al pasar el ratón, si la ficha lo tiene
+    rej.querySelectorAll<HTMLElement>('.tarjeta').forEach((t) => {
+      const v = t.querySelector('video');
+      if (!v) return;
+      t.addEventListener('mouseenter', () => v.play().catch(() => {}));
+      t.addEventListener('mouseleave', () => v.pause());
+    });
+  });
+</script>

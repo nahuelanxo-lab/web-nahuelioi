@@ -1,6 +1,6 @@
 ---
 import '@fontsource-variable/inter-tight';
-interface Props { title?: string; description?: string; image?: string }
+interface Props { title?: string; description?: string; image?: string; completo?: boolean }
 const {
   title,
   description = 'Nahuel Lioi — director de fotografía y operador de cámara en Galicia. Publicidad, videoclips y fotografía para productoras, agencias y marcas.',
@@ -29,11 +29,12 @@ const activo = (h: string) => (path.startsWith(h) ? 'activo' : undefined);
       <a href="/" class="marca">Nahuel Lioi</a>
       <span class="etiqueta oficio">Director de fotografía · Cámara</span>
       <nav>
-        <a href="/trabajos/" class={activo('/trabajos')}>Trabajos</a>
+        <a href="/video/" class={activo('/video')}>Vídeo</a>
+        <a href="/fotografia/" class={activo('/fotografia')}>Fotografía</a>
         <a href="/informacion/" class={activo('/informacion')}>Información</a>
       </nav>
     </header>
-    <main><slot /></main>
+    <main class:list={[{ completo: Astro.props.completo }]}><slot /></main>
     <footer class="pie">
       <span class="etiqueta">© {new Date().getFullYear()} Nahuel Lioi · Vigo, Galicia</span>
       <a class="etiqueta" href="mailto:nahuelanxo@gmail.com">nahuelanxo@gmail.com</a>
@@ -54,15 +55,18 @@ const activo = (h: string) => (path.startsWith(h) ? 'activo' : undefined);
   img { display: block; max-width: 100%; }
   ::selection { background: #fff; color: #000; }
   main { padding: 0 var(--pad); min-height: 70vh; }
+  main.completo { padding: 0; }
+  .cabecera { color: #fff; }
+  .titulo-pag { font-size: clamp(2.2rem, 6vw, 5rem); letter-spacing: -.035em; font-weight: 420; line-height: 1; margin: 16vh 0 2rem; }
   .etiqueta { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); font-weight: 450; }
   .tenue { color: var(--tenue); }
 
-  .cabecera { position: sticky; top: 0; z-index: 20; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 1.1rem var(--pad); mix-blend-mode: difference; }
+  .cabecera { position: fixed; left: 0; right: 0; top: 0; z-index: 20; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 1.1rem var(--pad); mix-blend-mode: difference; }
   .cabecera .marca { font-weight: 500; letter-spacing: -.01em; }
   .cabecera nav { justify-self: end; display: flex; gap: 1.5rem; }
   .cabecera nav a { opacity: .55; transition: opacity .2s; }
   .cabecera nav a:hover, .cabecera nav a.activo { opacity: 1; }
-  @media (max-width: 640px) { .cabecera { grid-template-columns: 1fr auto; } .oficio { display: none; } }
+  @media (max-width: 760px) { .cabecera { grid-template-columns: 1fr auto; } .oficio { display: none; } .cabecera nav { gap: 1rem; } }
 
   .pie { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; padding: 4rem var(--pad) 1.5rem; }
   .pie a:hover { color: var(--fg); }

@@ -1,0 +1,10 @@
+---
+import Base from '../../layouts/Base.astro';
+import Rejilla from '../../components/Rejilla.astro';
+import { videos, VIDEO } from '../../lib/proyectos';
+const lista = await videos();
+---
+<Base title="Vídeo" description="Vídeo de Nahuel Lioi como director de fotografía, operador de cámara y gaffer: comerciales, videoclips y eventos.">
+  <h1 class="titulo-pag">Vídeo</h1>
+  <Rejilla proyectos={lista} filtros={VIDEO} />
+</Base>

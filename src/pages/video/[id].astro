@@ -1,0 +1,57 @@
+---
+import Base from '../../layouts/Base.astro';
+import Ficha from '../../components/Ficha.astro';
+import Mas from '../../components/Mas.astro';
+import { render } from 'astro:content';
+import { videos, embedUrl, etiqueta, type Proyecto } from '../../lib/proyectos';
+export async function getStaticPaths() {
+  const lista = await videos();
+  return lista.map((p) => ({ params: { id: p.id }, props: { p, lista } }));
+}
+const { p, lista } = Astro.props as { p: Proyecto; lista: Proyecto[] };
+const { Content } = await render(p);
+const d = p.data;
+const embed = embedUrl(p);
+const desc = `${d.cliente} – ${d.titulo}${d.rol.length ? `. ${d.rol.join(', ')}` : ''}${d.productora ? ` para ${d.productora}` : ''}${d.año ? ` (${d.año})` : ''}. Nahuel Lioi, director de fotografía.`;
+---
+<Base title={`${d.cliente} – ${d.titulo}`} description={desc} image={d.poster}>
+  <article>
+    <div class="reproductor" data-embed={embed}>
+      {d.poster && <img src={d.poster} alt={`${d.cliente} – ${d.titulo}`} />}
+      {embed ? <button class="play" aria-label="Reproducir vídeo"></button> : <p class="sin etiqueta">Vídeo no disponible</p>}
+    </div>
+    <header class="cab">
+      <p class="etiqueta"><a href={`/video/#${d.categoria}`}>{etiqueta(p)}</a></p>
+      <h1>{d.cliente} <span class="tenue">‘{d.titulo}’</span></h1>
+      <Ficha p={p} />
+    </header>
+    <div class="texto"><Content /></div>
+    <Mas lista={lista} actual={p} titulo="Todo el vídeo" enlace="/video/" />
+  </article>
+</Base>
+<style>
+  article { padding-top: 4.5rem; }
+  .reproductor { position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 82svh; background: #0b0b0b; overflow: hidden; }
+  .reproductor img { width: 100%; height: 100%; object-fit: cover; }
+  .reproductor :global(iframe) { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .play { position: absolute; inset: 0; width: 100%; height: 100%; background: transparent; border: 0; cursor: pointer; }
+  .play::before { content: ''; position: absolute; left: 50%; top: 50%; width: 96px; height: 96px; margin: -48px 0 0 -48px; border-radius: 50%; background: rgba(0,0,0,.35); backdrop-filter: blur(8px); transition: transform .3s, background .3s; }
+  .play::after { content: ''; position: absolute; left: 50%; top: 50%; margin: -16px 0 0 -9px; border-left: 26px solid #fff; border-top: 16px solid transparent; border-bottom: 16px solid transparent; }
+  .play:hover::before { transform: scale(1.08); background: rgba(0,0,0,.55); }
+  .sin { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; }
+  .cab { margin: 1.75rem 0 0; }
+  .cab > p { margin: 0 0 .5rem; }
+  .cab > p a:hover { color: var(--fg); }
+  h1 { font-size: clamp(1.6rem, 3.6vw, 3rem); line-height: 1.05; letter-spacing: -.03em; font-weight: 420; margin: 0; }
+  .texto :global(p) { max-width: 60ch; color: #cfcfcf; }
+</style>
+<script>
+  const r = document.querySelector<HTMLElement>('.reproductor');
+  r?.querySelector('.play')?.addEventListener('click', () => {
+    const f = document.createElement('iframe');
+    f.src = r.dataset.embed!;
+    f.allow = 'autoplay; fullscreen; picture-in-picture';
+    f.allowFullscreen = true;
+    r.append(f);
+  });
+</script>

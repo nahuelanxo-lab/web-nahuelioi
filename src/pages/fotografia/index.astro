@@ -1,0 +1,10 @@
+---
+import Base from '../../layouts/Base.astro';
+import Rejilla from '../../components/Rejilla.astro';
+import { fotos } from '../../lib/proyectos';
+const lista = await fotos();
+---
+<Base title="Fotografía" description="Fotografía de Nahuel Lioi: eventos, sesiones, bodas y analógica 35 mm.">
+  <h1 class="titulo-pag">Fotografía</h1>
+  <Rejilla proyectos={lista} columnas={2} />
+</Base>
