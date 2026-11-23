@@ -26,12 +26,14 @@ const bloques = grupos
           const img = d.poster ?? d.galeria?.[0];
           return (
             <li>
-              <a href={url(p)} data-img={img} data-preview={d.preview}>
-                <span class="mini">{img && <img src={img} alt="" loading="lazy" decoding="async" onerror="this.remove()" />}</span>
+              <a href={url(p)}>
+                <span class="mini">
+                  {img && <img src={img} alt="" loading="lazy" decoding="async" onerror="this.remove()" />}
+                  {d.preview && <video src={d.preview} muted loop playsinline preload="none"></video>}
+                </span>
                 <span class="titulo">{d.cliente} <span class="obra">‘{d.titulo}’</span></span>
                 <span class="meta etiqueta">
-                  {d.rol.length > 0 && <span class="rol">{d.rol.slice(0, 2).join(' · ')}</span>}
-                  {d.productora && <span class="prod">{d.productora}</span>}
+                  {d.rol.length > 0 && <span>{d.rol.slice(0, 2).join(' · ')}</span>}
                   {d.galeria && <span>{d.galeria.length} fotos</span>}
                   {d.año && <span>{d.año}</span>}
                 </span>
@@ -43,7 +45,6 @@ const bloques = grupos
     </section>
   ))}
 </div>
-<div class="vista" aria-hidden="true"><img alt="" /><video muted loop playsinline></video></div>
 
 <style>
   .filtros { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; margin: 0 0 2.5rem; }
@@ -52,64 +53,35 @@ const bloques = grupos
   .filtros sup { font-size: 8px; }
   .grupo { margin-bottom: 3.5rem; }
   .grupo[hidden] { display: none; }
-  .grupo h2 { margin: 0 0 .9rem; font-weight: 450; }
-  ul { list-style: none; margin: 0; padding: 0; }
-  li a { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 1.25rem; padding: .5rem 0; border-top: 1px solid var(--linea); transition: opacity .25s; }
-  li:last-child a { border-bottom: 1px solid var(--linea); }
-  .mini { display: block; width: 112px; aspect-ratio: 16 / 9; background: #111; overflow: hidden; }
-  .mini img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(.35); transition: filter .3s; }
-  li a:hover .mini img { filter: none; }
-  .titulo { font-size: clamp(1.05rem, 1.6vw, 1.35rem); letter-spacing: -.01em; }
+  .grupo h2 { margin: 0 0 1rem; padding-bottom: .6rem; border-bottom: 1px solid var(--linea); font-weight: 450; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem 1rem; }
+  li a { display: flex; flex-direction: column; gap: .2rem; transition: opacity .25s; }
+  .mini { position: relative; display: block; aspect-ratio: 16 / 9; background: #111; overflow: hidden; margin-bottom: .45rem; }
+  .mini img, .mini video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .mini img { filter: grayscale(.3); transition: filter .3s, transform 1s cubic-bezier(.2,.7,.2,1); }
+  .mini video { opacity: 0; transition: opacity .3s; }
+  li a:hover .mini img { filter: none; transform: scale(1.03); }
+  li a:hover .mini video { opacity: 1; }
+  .titulo { font-size: .95rem; letter-spacing: -.01em; line-height: 1.25; }
   .obra { color: var(--tenue); transition: color .25s; }
   li a:hover .obra { color: var(--fg); }
-  .meta { display: flex; gap: 1.1rem; justify-content: flex-end; text-align: right; }
-  .lista:has(a:hover) a:not(:hover) { opacity: .3; }
-
-  .vista { position: fixed; left: 0; top: 0; width: min(34vw, 500px); aspect-ratio: 16 / 9; pointer-events: none; z-index: 10; opacity: 0; transition: opacity .2s; overflow: hidden; background: #111; }
-  .vista.on { opacity: 1; }
-  .vista img, .vista video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .vista img:not([src]) { visibility: hidden; }
-  .vista video { display: none; }
-  .vista.video video { display: block; }
-
-  @media (max-width: 900px) { .meta .prod { display: none; } }
-  @media (hover: none), (max-width: 700px) {
-    .vista { display: none; }
-    .lista:has(a:hover) a:not(:hover) { opacity: 1; }
-    li a { grid-template-columns: 104px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: .9rem; row-gap: .2rem; padding: .6rem 0; }
-    .mini { width: 104px; grid-row: 1 / span 2; }
-    .mini img { filter: none; }
-    .titulo { align-self: end; font-size: 1rem; }
-    .meta { align-self: start; justify-content: flex-start; text-align: left; flex-wrap: wrap; gap: .2rem .8rem; }
-  }
+  .meta { display: flex; flex-wrap: wrap; gap: .1rem .8rem; }
+  /* Al pasar por encima, se atenúa todo menos la miniatura activa */
+  .lista:has(a:hover) a:not(:hover) { opacity: .35; }
+  @media (max-width: 1100px) { ul { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 760px) { ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem .75rem; } .titulo { font-size: .88rem; } }
+  @media (hover: none) { .mini img { filter: none; } .lista:has(a:hover) a:not(:hover) { opacity: 1; } }
 </style>
 
 <script>
-  const vista = document.querySelector<HTMLDivElement>('.vista');
   const lista = document.querySelector<HTMLElement>('[data-lista]');
-  if (vista && lista && matchMedia('(hover: hover) and (min-width: 701px)').matches) {
-    const img = vista.querySelector('img')!;
-    const vid = vista.querySelector('video')!;
-    let x = 0, y = 0, cx = 0, cy = 0, raf = 0;
-    const mover = () => {
-      cx += (x - cx) * 0.18; cy += (y - cy) * 0.18;
-      const w = vista.offsetWidth, h = vista.offsetHeight;
-      const left = Math.min(cx + 28, innerWidth - w - 16);
-      vista.style.transform = `translate(${left}px, ${Math.max(16, Math.min(cy - h / 2, innerHeight - h - 16))}px)`;
-      raf = requestAnimationFrame(mover);
-    };
-    lista.querySelectorAll<HTMLAnchorElement>('a[data-img]').forEach((a) => {
-      a.addEventListener('mouseenter', () => {
-        img.src = a.dataset.img!;
-        if (a.dataset.preview) { vid.src = a.dataset.preview; vid.play().catch(() => {}); vista.classList.add('video'); }
-        else { vid.removeAttribute('src'); vista.classList.remove('video'); }
-        vista.classList.add('on');
-        if (!raf) raf = requestAnimationFrame(mover);
-      });
-      a.addEventListener('mouseleave', () => { vista.classList.remove('on'); vid.pause(); });
-    });
-    addEventListener('mousemove', (e) => { x = e.clientX; y = e.clientY; }, { passive: true });
-  }
+  // Clip de vista previa al pasar el ratón (si la ficha tiene `preview`)
+  lista?.querySelectorAll<HTMLAnchorElement>('a').forEach((a) => {
+    const v = a.querySelector('video');
+    if (!v) return;
+    a.addEventListener('mouseenter', () => v.play().catch(() => {}));
+    a.addEventListener('mouseleave', () => v.pause());
+  });
   // Filtros
   const botones = [...document.querySelectorAll<HTMLButtonElement>('[data-filtro]')];
   const aplicar = (f: string) => {
