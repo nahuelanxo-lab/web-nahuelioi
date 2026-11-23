@@ -1,0 +1,126 @@
+---
+import { url, type Proyecto } from '../lib/proyectos';
+interface Props {
+  proyectos: Proyecto[];
+  grupos?: Record<string, string>;   // categoría → título del grupo (si se agrupa)
+  filtros?: boolean;
+}
+const { proyectos, grupos, filtros = false } = Astro.props;
+const bloques = grupos
+  ? Object.entries(grupos).map(([c, n]) => ({ c, n, items: proyectos.filter((p) => p.data.categoria === c) })).filter((b) => b.items.length)
+  : [{ c: 'todo', n: '', items: proyectos }];
+---
+{filtros && grupos && (
+  <nav class="filtros" aria-label="Filtrar">
+    <button class="etiqueta activo" data-filtro="todo">Todo <sup>{proyectos.length}</sup></button>
+    {bloques.map((b) => <button class="etiqueta" data-filtro={b.c}>{b.n} <sup>{b.items.length}</sup></button>)}
+  </nav>
+)}
+<div class="lista" data-lista>
+  {bloques.map((b) => (
+    <section class="grupo" data-grupo={b.c}>
+      {b.n && <h2 class="etiqueta">{b.n}</h2>}
+      <ul>
+        {b.items.map((p) => {
+          const d = p.data;
+          const img = d.poster ?? d.galeria?.[0];
+          return (
+            <li>
+              <a href={url(p)} data-img={img} data-preview={d.preview}>
+                <span class="mini">{img && <img src={img} alt="" loading="lazy" decoding="async" onerror="this.remove()" />}</span>
+                <span class="titulo">{d.cliente} <span class="obra">‘{d.titulo}’</span></span>
+                <span class="meta etiqueta">
+                  {d.rol.length > 0 && <span class="rol">{d.rol.slice(0, 2).join(' · ')}</span>}
+                  {d.productora && <span class="prod">{d.productora}</span>}
+                  {d.galeria && <span>{d.galeria.length} fotos</span>}
+                  {d.año && <span>{d.año}</span>}
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  ))}
+</div>
+<div class="vista" aria-hidden="true"><img alt="" /><video muted loop playsinline></video></div>
+
+<style>
+  .filtros { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; margin: 0 0 2.5rem; }
+  .filtros button { background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit; }
+  .filtros button.activo, .filtros button:hover { color: var(--fg); }
+  .filtros sup { font-size: 8px; }
+  .grupo { margin-bottom: 3.5rem; }
+  .grupo[hidden] { display: none; }
+  .grupo h2 { margin: 0 0 .9rem; font-weight: 450; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li a { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 1.25rem; padding: .5rem 0; border-top: 1px solid var(--linea); transition: opacity .25s; }
+  li:last-child a { border-bottom: 1px solid var(--linea); }
+  .mini { display: block; width: 112px; aspect-ratio: 16 / 9; background: #111; overflow: hidden; }
+  .mini img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(.35); transition: filter .3s; }
+  li a:hover .mini img { filter: none; }
+  .titulo { font-size: clamp(1.05rem, 1.6vw, 1.35rem); letter-spacing: -.01em; }
+  .obra { color: var(--tenue); transition: color .25s; }
+  li a:hover .obra { color: var(--fg); }
+  .meta { display: flex; gap: 1.1rem; justify-content: flex-end; text-align: right; }
+  .lista:has(a:hover) a:not(:hover) { opacity: .3; }
+
+  .vista { position: fixed; left: 0; top: 0; width: min(34vw, 500px); aspect-ratio: 16 / 9; pointer-events: none; z-index: 10; opacity: 0; transition: opacity .2s; overflow: hidden; background: #111; }
+  .vista.on { opacity: 1; }
+  .vista img, .vista video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .vista img:not([src]) { visibility: hidden; }
+  .vista video { display: none; }
+  .vista.video video { display: block; }
+
+  @media (max-width: 900px) { .meta .prod { display: none; } }
+  @media (hover: none), (max-width: 700px) {
+    .vista { display: none; }
+    .lista:has(a:hover) a:not(:hover) { opacity: 1; }
+    li a { grid-template-columns: 104px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: .9rem; row-gap: .2rem; padding: .6rem 0; }
+    .mini { width: 104px; grid-row: 1 / span 2; }
+    .mini img { filter: none; }
+    .titulo { align-self: end; font-size: 1rem; }
+    .meta { align-self: start; justify-content: flex-start; text-align: left; flex-wrap: wrap; gap: .2rem .8rem; }
+  }
+</style>
+
+<script>
+  const vista = document.querySelector<HTMLDivElement>('.vista');
+  const lista = document.querySelector<HTMLElement>('[data-lista]');
+  if (vista && lista && matchMedia('(hover: hover) and (min-width: 701px)').matches) {
+    const img = vista.querySelector('img')!;
+    const vid = vista.querySelector('video')!;
+    let x = 0, y = 0, cx = 0, cy = 0, raf = 0;
+    const mover = () => {
+      cx += (x - cx) * 0.18; cy += (y - cy) * 0.18;
+      const w = vista.offsetWidth, h = vista.offsetHeight;
+      const left = Math.min(cx + 28, innerWidth - w - 16);
+      vista.style.transform = `translate(${left}px, ${Math.max(16, Math.min(cy - h / 2, innerHeight - h - 16))}px)`;
+      raf = requestAnimationFrame(mover);
+    };
+    lista.querySelectorAll<HTMLAnchorElement>('a[data-img]').forEach((a) => {
+      a.addEventListener('mouseenter', () => {
+        img.src = a.dataset.img!;
+        if (a.dataset.preview) { vid.src = a.dataset.preview; vid.play().catch(() => {}); vista.classList.add('video'); }
+        else { vid.removeAttribute('src'); vista.classList.remove('video'); }
+        vista.classList.add('on');
+        if (!raf) raf = requestAnimationFrame(mover);
+      });
+      a.addEventListener('mouseleave', () => { vista.classList.remove('on'); vid.pause(); });
+    });
+    addEventListener('mousemove', (e) => { x = e.clientX; y = e.clientY; }, { passive: true });
+  }
+  // Filtros
+  const botones = [...document.querySelectorAll<HTMLButtonElement>('[data-filtro]')];
+  const aplicar = (f: string) => {
+    botones.forEach((b) => b.classList.toggle('activo', b.dataset.filtro === f));
+    lista?.querySelectorAll<HTMLElement>('[data-grupo]').forEach((g) => (g.hidden = f !== 'todo' && g.dataset.grupo !== f));
+  };
+  botones.forEach((b) => b.addEventListener('click', () => {
+    const f = b.dataset.filtro!;
+    aplicar(f);
+    history.replaceState(null, '', f === 'todo' ? location.pathname : `#${f}`);
+  }));
+  const h = location.hash.slice(1);
+  if (h && botones.some((b) => b.dataset.filtro === h)) aplicar(h);
+</script>

@@ -1,89 +1,76 @@
 ---
+import { existsSync } from 'node:fs';
 import Base from '../layouts/Base.astro';
-import Rejilla from '../components/Rejilla.astro';
+import Lista from '../components/Lista.astro';
 import { publicados, videos, fotos } from '../lib/proyectos';
 const todos = await publicados();
 const destacados = todos.filter((p) => p.data.destacado);
-// Fuera de la portada las miniaturas que llevan texto incrustado (título del vídeo)
+// Reel de portada: public/media/reel.mp4 (+ reel.jpg como imagen de espera).
+// Mientras no exista, el recuadro muestra imágenes de los destacados.
+const hayReel = existsSync('public/media/reel.mp4');
 const conTexto = ['2024_concello-de-o-grove_o-grove', 'sf_hotel-puente-la-toja_descubre-la-toja-y-o-grove'];
 const diapos = destacados.filter((p) => !conTexto.includes(p.id)).map((p) => p.data.poster).filter(Boolean) as string[];
-const listaFotos = await fotos();
-const portadaVideo = destacados[0]?.data.poster;
-const portadaFoto = listaFotos.find((p) => p.id.includes('rande'))?.data.galeria?.[1] ?? listaFotos[0]?.data.poster;
 const nVideo = (await videos()).length;
+const nFoto = (await fotos()).length;
 ---
-<Base completo>
-  <section class="hero" aria-label="Selección de imágenes">
-    <!-- Cuando esté el showreel: sustituir las diapositivas por <video autoplay muted loop playsinline> -->
-    {diapos.map((src, i) => <img class:list={['diapo', { on: i === 0 }]} src={src} alt="" loading={i < 2 ? 'eager' : 'lazy'} />)}
-    <div class="velo"></div>
-    <div class="hero-txt">
-      <p class="lema">Director de fotografía y cámara.<br /><span class="tenue">Publicidad, videoclips y fotografía desde Galicia.</span></p>
-      <div class="botones">
-        <a href="/video/">Ver vídeo</a>
-        <a href="/fotografia/">Ver fotografía</a>
-      </div>
+<Base>
+  <section class="hero">
+    <div class="texto">
+      <p class="lema">Director de fotografía y cámara para publicidad, videoclips y piezas de marca.</p>
+      <nav class="accesos">
+        <a href="/video/">Vídeo <sup>{nVideo}</sup></a>
+        <a href="/fotografia/">Fotografía <sup>{nFoto}</sup></a>
+        <a href="/informacion/">Contacto</a>
+      </nav>
+    </div>
+    <div class="reel">
+      {hayReel ? (
+        <video src="/media/reel.mp4" poster={existsSync('public/media/reel.jpg') ? '/media/reel.jpg' : undefined} autoplay muted loop playsinline preload="auto"></video>
+      ) : (
+        diapos.map((src, i) => <img class:list={['diapo', { on: i === 0 }]} src={src} alt="" loading={i < 2 ? 'eager' : 'lazy'} />)
+      )}
+      <span class="etiqueta rotulo">Reel</span>
     </div>
   </section>
 
-  <section class="bloque">
-    <div class="cab-bloque"><h2 class="etiqueta">Selección</h2><a class="etiqueta" href="/video/">Todo el vídeo ({nVideo}) →</a></div>
-    <Rejilla proyectos={destacados} columnas={2} />
+  <section class="seleccion">
+    <div class="cab"><h1 class="etiqueta">Selección</h1><a class="etiqueta" href="/video/">Todo el vídeo →</a></div>
+    <Lista proyectos={destacados} />
   </section>
 
-  <section class="bloque secciones">
-    <a href="/video/" class="seccion">
-      {portadaVideo && <img src={portadaVideo} alt="" loading="lazy" />}
-      <span>Vídeo</span>
-      <small class="etiqueta">Comercial · Videoclips · Eventos</small>
-    </a>
-    <a href="/fotografia/" class="seccion">
-      {portadaFoto && <img src={portadaFoto} alt="" loading="lazy" />}
-      <span>Fotografía</span>
-      <small class="etiqueta">{listaFotos.length} series</small>
-    </a>
-  </section>
-
-  <section class="bloque marcas">
+  <section class="marcas">
     <p class="etiqueta">He trabajado con</p>
-    <p class="lista-marcas">VisualVR · TreceAmarillo · MINT · Fish&amp;Rock · DYR · Modelocero · Orixe Creative</p>
+    <p>VisualVR · TreceAmarillo · MINT · Fish&amp;Rock · DYR · Modelocero · Orixe Creative</p>
   </section>
 </Base>
 <style>
-  .hero { position: relative; height: 100svh; min-height: 520px; overflow: hidden; background: #000; }
-  .diapo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.06); transition: opacity 1.6s ease, transform 7s linear; }
-  .diapo.on { opacity: 1; transform: scale(1); }
-  .velo { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.75) 0%, rgba(0,0,0,.1) 45%, rgba(0,0,0,.25) 100%); }
-  .hero-txt { position: absolute; left: var(--pad); right: var(--pad); bottom: clamp(1.5rem, 5vh, 3.5rem); display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; flex-wrap: wrap; }
-  .lema { margin: 0; font-size: clamp(1.6rem, 3.4vw, 3rem); line-height: 1.05; letter-spacing: -.03em; font-weight: 420; max-width: 22ch; }
-  .lema .tenue { color: rgba(255,255,255,.6); }
-  .botones { display: flex; gap: .6rem; }
-  .botones a { border: 1px solid rgba(255,255,255,.5); border-radius: 999px; padding: .6rem 1.2rem; backdrop-filter: blur(6px); background: rgba(0,0,0,.2); transition: background .2s, color .2s; }
-  .botones a:hover { background: #fff; color: #000; }
-  .bloque { padding: clamp(3rem, 8vw, 6rem) var(--pad) 0; }
-  .cab-bloque { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.25rem; }
-  .cab-bloque h2 { margin: 0; font-weight: 450; }
-  .cab-bloque a:hover { color: var(--fg); }
-  .secciones { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-  .seccion { position: relative; aspect-ratio: 4 / 3; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 1.5rem; background: #111; }
-  .seccion img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s cubic-bezier(.2,.7,.2,1); }
-  .seccion::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.6), transparent 55%); }
-  .seccion span, .seccion small { position: relative; z-index: 1; }
-  .seccion span { font-size: clamp(2rem, 5vw, 4rem); letter-spacing: -.035em; line-height: 1; }
-  .seccion small { color: rgba(255,255,255,.75); margin-top: .5rem; }
-  .seccion:hover img { transform: scale(1.04); }
-  .marcas { text-align: center; padding-bottom: 2rem; }
-  .lista-marcas { font-size: clamp(1.1rem, 2.2vw, 1.8rem); letter-spacing: -.02em; color: var(--tenue); max-width: 40ch; margin: .8rem auto 0; line-height: 1.3; }
-  @media (max-width: 640px) { .secciones { grid-template-columns: 1fr; } .botones { width: 100%; } .botones a { flex: 1; text-align: center; } }
+  .hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(1.5rem, 4vw, 4rem); align-items: end; padding-top: clamp(6rem, 16vh, 10rem); }
+  .lema { font-size: clamp(1.5rem, 2.8vw, 2.6rem); line-height: 1.07; letter-spacing: -.03em; font-weight: 420; margin: 0 0 2rem; max-width: 18ch; }
+  .accesos { display: flex; flex-wrap: wrap; gap: .4rem 1.5rem; font-size: 1.05rem; }
+  .accesos a { color: var(--tenue); transition: color .2s; }
+  .accesos a:hover { color: var(--fg); }
+  .accesos sup { font-size: .6em; }
+  .reel { position: relative; aspect-ratio: 16 / 9; max-height: 62vh; width: 100%; background: #111; overflow: hidden; justify-self: end; }
+  .reel video, .reel img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .diapo { opacity: 0; transition: opacity 1.4s ease; }
+  .diapo.on { opacity: 1; }
+  .rotulo { position: absolute; left: .75rem; bottom: .6rem; color: rgba(255,255,255,.85); }
+  .seleccion { margin-top: clamp(4rem, 10vw, 7rem); }
+  .cab { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .9rem; }
+  .cab h1 { margin: 0; font-weight: 450; }
+  .cab a:hover { color: var(--fg); }
+  .marcas { margin-top: 5rem; }
+  .marcas p:last-child { font-size: clamp(1rem, 1.8vw, 1.4rem); letter-spacing: -.015em; color: var(--tenue); margin: .6rem 0 0; max-width: 46ch; }
+  @media (max-width: 800px) {
+    .hero { grid-template-columns: 1fr; padding-top: 5.5rem; }
+    .reel { order: -1; }
+    .lema { margin-bottom: 1.25rem; }
+  }
 </style>
 <script>
   const d = [...document.querySelectorAll<HTMLImageElement>('.diapo')];
   let i = 0;
   if (d.length > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    setInterval(() => {
-      d[i].classList.remove('on');
-      i = (i + 1) % d.length;
-      d[i].classList.add('on');
-    }, 4500);
+    setInterval(() => { d[i].classList.remove('on'); i = (i + 1) % d.length; d[i].classList.add('on'); }, 3500);
   }
 </script>
