@@ -4,7 +4,9 @@ import Rejilla from '../components/Rejilla.astro';
 import { publicados, videos, fotos } from '../lib/proyectos';
 const todos = await publicados();
 const destacados = todos.filter((p) => p.data.destacado);
-const diapos = destacados.map((p) => p.data.poster).filter(Boolean) as string[];
+// Fuera de la portada las miniaturas que llevan texto incrustado (título del vídeo)
+const conTexto = ['2024_concello-de-o-grove_o-grove', 'sf_hotel-puente-la-toja_descubre-la-toja-y-o-grove'];
+const diapos = destacados.filter((p) => !conTexto.includes(p.id)).map((p) => p.data.poster).filter(Boolean) as string[];
 const listaFotos = await fotos();
 const portadaVideo = destacados[0]?.data.poster;
 const portadaFoto = listaFotos.find((p) => p.id.includes('rande'))?.data.galeria?.[1] ?? listaFotos[0]?.data.poster;
