@@ -4,8 +4,9 @@ interface Props {
   proyectos: Proyecto[];
   grupos?: Record<string, string>;   // categoría → título del grupo (si se agrupa)
   filtros?: boolean;
+  columnas?: 3 | 4;
 }
-const { proyectos, grupos, filtros = false } = Astro.props;
+const { proyectos, grupos, filtros = false, columnas = 4 } = Astro.props;
 const bloques = grupos
   ? Object.entries(grupos).map(([c, n]) => ({ c, n, items: proyectos.filter((p) => p.data.categoria === c) })).filter((b) => b.items.length)
   : [{ c: 'todo', n: '', items: proyectos }];
@@ -16,7 +17,7 @@ const bloques = grupos
     {bloques.map((b) => <button class="etiqueta" data-filtro={b.c}>{b.n} <sup>{b.items.length}</sup></button>)}
   </nav>
 )}
-<div class="lista" data-lista>
+<div class:list={['lista', `c${columnas}`]} data-lista>
   {bloques.map((b) => (
     <section class="grupo" data-grupo={b.c}>
       {b.n && <h2 class="etiqueta">{b.n}</h2>}
@@ -68,6 +69,7 @@ const bloques = grupos
   .meta { display: flex; flex-wrap: wrap; gap: .1rem .8rem; }
   /* Al pasar por encima, se atenúa todo menos la miniatura activa */
   .lista:has(a:hover) a:not(:hover) { opacity: .35; }
+  .c3 ul { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   @media (max-width: 1100px) { ul { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 760px) { ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem .75rem; } .titulo { font-size: .88rem; } }
   @media (hover: none) { .mini img { filter: none; } .lista:has(a:hover) a:not(:hover) { opacity: 1; } }

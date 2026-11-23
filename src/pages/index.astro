@@ -4,7 +4,7 @@ import Base from '../layouts/Base.astro';
 import Lista from '../components/Lista.astro';
 import { publicados, videos, fotos } from '../lib/proyectos';
 const todos = await publicados();
-const destacados = todos.filter((p) => p.data.destacado);
+const destacados = todos.filter((p) => p.data.destacado).slice(0, 6);
 // Reel de portada: public/media/reel.mp4 (+ reel.jpg como imagen de espera).
 // Mientras no exista, el recuadro muestra imágenes de los destacados.
 const hayReel = existsSync('public/media/reel.mp4');
@@ -33,7 +33,7 @@ const nFoto = (await fotos()).length;
 
 <section class="seleccion">
     <div class="cab"><h1 class="etiqueta">Selección</h1><a class="etiqueta" href="/video/">Todo el vídeo →</a></div>
-    <Lista proyectos={destacados} />
+    <Lista proyectos={destacados} columnas={3} />
   </section>
 
   <section class="marcas">
@@ -42,7 +42,7 @@ const nFoto = (await fotos()).length;
   </section>
 </Base>
 <style>
-  .hero { position: relative; height: clamp(170px, 28vh, 300px); margin-top: clamp(1.5rem, 5vh, 3rem); overflow: hidden; background: #111; }
+  .hero { position: relative; width: min(100%, 720px); aspect-ratio: 16 / 9; margin: clamp(1.5rem, 5vh, 3rem) auto 0; overflow: hidden; background: #111; }
   .hero video, .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .diapo { opacity: 0; transition: opacity 1.4s ease; }
   .diapo.on { opacity: 1; }
@@ -54,15 +54,25 @@ const nFoto = (await fotos()).length;
   .accesos a { color: rgba(255,255,255,.75); transition: color .2s; }
   .accesos a:hover { color: #fff; }
   .accesos sup { font-size: .6em; }
-  .seleccion { margin-top: clamp(3rem, 7vw, 5rem); }
+  .seleccion { margin: clamp(3rem, 7vw, 5rem) auto 0; width: min(100%, 980px); }
   .cab { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .9rem; }
   .cab h1 { margin: 0; font-weight: 450; }
   .cab a:hover { color: var(--fg); }
-  .marcas { margin-top: 5rem; }
+  .marcas { margin: 5rem auto 0; width: min(100%, 980px); }
   .marcas p:last-child { font-size: clamp(1rem, 1.8vw, 1.4rem); letter-spacing: -.015em; color: var(--tenue); margin: .6rem 0 0; max-width: 46ch; }
-  @media (max-width: 640px) { .hero { height: 52vw; min-height: 170px; } .accesos { display: none; } }
+  @media (max-width: 640px) { .accesos { display: none; } }
 </style>
 <script>
+  // Asegura la reproducción en bucle aunque el navegador no respete autoplay a la primera
+  const reel = document.querySelector<HTMLVideoElement>('.hero video');
+  if (reel) {
+    reel.muted = true;
+    const go = () => reel.play().catch(() => {});
+    go();
+    reel.addEventListener('canplay', go, { once: true });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) go(); });
+    ['touchstart', 'scroll', 'click'].forEach((ev) => addEventListener(ev, go, { once: true, passive: true }));
+  }
   const d = [...document.querySelectorAll<HTMLImageElement>('.diapo')];
   let i = 0;
   if (d.length > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
