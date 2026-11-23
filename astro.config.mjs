@@ -1,5 +1,43 @@
 import { defineConfig } from 'astro/config';
 
+// Las redirecciones mantienen vivos los enlaces de la web antigua (Fabrik) al cambiar el dominio.
 export default defineConfig({
   site: 'https://nahuelioi.com',
+  trailingSlash: 'ignore',
+  redirects: {
+      "/sobre-mi": "/informacion/",
+      "/contacto": "/informacion/",
+      "/pages/sobre-mi-1": "/informacion/",
+      "/pages/contacto": "/informacion/",
+      "/comercial": "/trabajos/",
+      "/videoclip": "/trabajos/",
+      "/evento": "/trabajos/",
+      "/fotografia": "/trabajos/",
+      "/portfolio/el-chico-lopez-la-conclusion": "/trabajos/2020_el-chico-lopez_la-conclusion/",
+      "/portfolio/louband-tour-2022-agosto": "/trabajos/2022_louband_tour-agosto-2022/",
+      "/portfolio/flordemavida-sandra-monfort": "/trabajos/2022_sandra-monfort_flordemavida/",
+      "/portfolio/spot-publicitario-o-grove": "/trabajos/2024_concello-de-o-grove_o-grove/",
+      "/portfolio/cruas-no-vitruvia-as-minas-as": "/trabajos/2024_cruas_as-minas-as-directo-no-vitruvia/",
+      "/portfolio/noite-meiga-sarria": "/trabajos/2024_meigas-e-trasgos_noite-meiga-2024/",
+      "/portfolio/unviajeinmersivo": "/trabajos/2024_un-viaje-inmersivo_un-viaje-inmersivo/",
+      "/portfolio/balneario-de-mondariz-video-pomo": "/trabajos/sf_balneario-de-mondariz_video-promo/",
+      "/portfolio/burritos-cabrones-spot-1": "/trabajos/sf_burritos-cabrones_spot-1/",
+      "/portfolio/burritos-cabrones-spot-2": "/trabajos/sf_burritos-cabrones_spot-2/",
+      "/portfolio/ruta-desfeita-de-camilo-gonsar": "/trabajos/sf_camilo-gonsar_ruta-desfeita/",
+      "/portfolio/video-promocional-del-concello-de-sanxenxo": "/trabajos/sf_concello-de-sanxenxo_sanxenxo-365/",
+      "/portfolio/fiandeira-cruas": "/trabajos/sf_cruas_fiandeira/",
+      "/portfolio/dreamlucid-the-dream": "/trabajos/sf_dreamlucid_the-dream/",
+      "/portfolio/me-gustaria-verte-el-chico-lopez": "/trabajos/sf_el-chico-lopez_me-gustaria-verte/",
+      "/portfolio/feuga-congreso-firepoctep": "/trabajos/sf_feuga_congreso-firepoctep/",
+      "/portfolio/spot-publicitario-gastrovisual": "/trabajos/sf_gastrovisual_gastrovisual/",
+      "/portfolio/descubre-la-toja-y-o-grove-un-recorrido-visual-por-el-hotel-puente-la-toja": "/trabajos/sf_hotel-puente-la-toja_descubre-la-toja-y-o-grove/",
+      "/portfolio/volar-videoclip": "/trabajos/sf_kevin_volar/",
+      "/portfolio/louband-revenidas": "/trabajos/sf_louband_revenidas/",
+      "/portfolio/louband-xabarin-club-adelanto": "/trabajos/sf_louband_xabarin-club/",
+      "/portfolio/noite-meiga": "/trabajos/sf_meigas-e-trasgos_noite-meiga/",
+      "/portfolio/analogicas-35mm": "/trabajos/sf_personal_analogicas-35-mm/",
+      "/portfolio/sesion-rande-vintage": "/trabajos/sf_rande-vintage_sesion/",
+      "/portfolio/rare-modo-deficit-prod-rare": "/trabajos/sf_rare_modo-deficit/",
+      "/portfolio/bodas": "/trabajos/sf_varios_bodas/"
+  },
 });

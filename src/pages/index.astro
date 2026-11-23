@@ -1,30 +1,25 @@
 ---
 import Base from '../layouts/Base.astro';
-import { getCollection } from 'astro:content';
-const destacados = (await getCollection('proyectos', p => p.data.destacado))
-  .sort((a, b) => b.data.año - a.data.año);
+import ListaProyectos from '../components/ListaProyectos.astro';
+import { publicados } from '../lib/proyectos';
+const todos = await publicados();
+const destacados = todos.filter((p) => p.data.destacado);
 ---
 <Base>
-  <section class="hero">
-    <!-- Aquí irá el showreel -->
-    <h1>Dirección de fotografía y cámara</h1>
-    <p class="muted">Para productoras, agencias y marcas.</p>
-    <a href="/trabajos/">Ver trabajos</a> · <a href="/contacto/">Hablemos</a>
+  <section class="intro">
+    <!-- Aquí irá el showreel en bucle (pendiente) -->
+    <p class="lema">Dirección de fotografía y cámara para publicidad, videoclips y piezas de marca. Trabajo con productoras y agencias desde Galicia.</p>
+    <p class="etiqueta">Con VisualVR · TreceAmarillo · MINT · Fish&amp;Rock · DYR · Modelocero</p>
   </section>
-  <section>
-    <h2>Trabajos destacados</h2>
-    <ul class="grid">
-      {destacados.map(p => (
-        <li><a href={`/trabajos/${p.id}/`}>
-          <strong>{p.data.titulo}</strong>
-          <span class="muted">{p.data.cliente} · {p.data.rol.join(', ')} · {p.data.año}</span>
-        </a></li>
-      ))}
-    </ul>
-  </section>
+
+  <h1 class="etiqueta seccion">Selección</h1>
+  <ListaProyectos proyectos={destacados} agrupar={false} />
+  <p class="mas"><a href="/trabajos/">Todos los trabajos <span class="tenue">({todos.length})</span> →</a></p>
 </Base>
 <style>
-  .hero { min-height: 60vh; display: flex; flex-direction: column; justify-content: center; }
-  .grid { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
-  .grid a { display: flex; flex-direction: column; gap: .3rem; text-decoration: none; }
+  .intro { min-height: 62vh; display: flex; flex-direction: column; justify-content: flex-end; gap: 1.5rem; padding-bottom: 5rem; }
+  .lema { font-size: clamp(1.6rem, 3.6vw, 3.1rem); line-height: 1.08; letter-spacing: -.025em; max-width: 22ch; margin: 0; font-weight: 420; }
+  .seccion { margin: 0 0 1rem; font-weight: 450; }
+  .mas { margin-top: 2rem; font-size: 1.1rem; }
+  .mas a:hover .tenue { color: var(--fg); }
 </style>

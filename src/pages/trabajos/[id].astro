@@ -1,30 +1,76 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getCollection, render } from 'astro:content';
+import { render } from 'astro:content';
+import { publicados, embedUrl, CATEGORIAS, type Proyecto } from '../../lib/proyectos';
 export async function getStaticPaths() {
-  const proyectos = await getCollection('proyectos');
-  return proyectos.map(p => ({ params: { id: p.id }, props: { p } }));
+  const lista = await publicados();
+  return lista.map((p, i) => ({
+    params: { id: p.id },
+    props: { p, sig: lista[(i + 1) % lista.length] },
+  }));
 }
-const { p } = Astro.props;
+const { p, sig } = Astro.props as { p: Proyecto; sig: Proyecto };
 const { Content } = await render(p);
 const d = p.data;
+const embed = embedUrl(p);
+const titulo = `${d.cliente} ‘${d.titulo}’`;
+const desc = `${d.cliente} – ${d.titulo}${d.rol.length ? `. ${d.rol.join(', ')}` : ''}${d.productora ? ` para ${d.productora}` : ''}${d.año ? ` (${d.año})` : ''}. Nahuel Lioi.`;
 ---
-<Base title={`${d.titulo} · ${d.cliente}`} description={`${d.titulo} para ${d.cliente}. ${d.rol.join(', ')} (${d.año}).`}>
+<Base title={`${d.cliente} – ${d.titulo}`} description={desc} image={d.poster}>
   <article>
-    <h1>{d.titulo}</h1>
-    <!-- Reproductor de vídeo: pendiente de decidir alojamiento (Bunny/Vimeo) -->
+    <header class="cab">
+      <p class="etiqueta">{CATEGORIAS[d.categoria]}</p>
+      <h1>{d.cliente} <span class="tenue">‘{d.titulo}’</span></h1>
+    </header>
+
+    {embed ? (
+      <div class="reproductor">
+        <iframe src={embed} title={titulo} loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    ) : d.poster && !d.galeria ? (
+      <img class="reproductor" src={d.poster} alt={titulo} />
+    ) : null}
+
     <dl class="ficha">
-      <dt>Cliente</dt><dd>{d.cliente}</dd>
-      {d.productora && <><dt>Productora / Agencia</dt><dd>{d.productora}</dd></>}
-      <dt>Rol</dt><dd>{d.rol.join(', ')}</dd>
-      <dt>Año</dt><dd>{d.año}</dd>
+      {d.rol.length > 0 && <div><dt class="etiqueta">Rol</dt><dd>{d.rol.join(', ')}</dd></div>}
+      <div><dt class="etiqueta">Cliente</dt><dd>{d.cliente}</dd></div>
+      {d.productora && <div><dt class="etiqueta">Productora / Agencia</dt><dd>{d.productora}</dd></div>}
+      {d.año && <div><dt class="etiqueta">Año</dt><dd>{d.año}</dd></div>}
+      {d.camara && <div><dt class="etiqueta">Cámara</dt><dd>{d.camara}</dd></div>}
+      {d.creditos && <div class="ancho"><dt class="etiqueta">Créditos</dt><dd>{d.creditos}</dd></div>}
     </dl>
-    <Content />
-    <p><a href="/trabajos/">← Todos los trabajos</a></p>
+
+    <div class="texto"><Content /></div>
+
+    {d.galeria && (
+      <div class="galeria">
+        {d.galeria.map((src, i) => <img src={src} alt={`${titulo} – foto ${i + 1}`} loading={i < 4 ? 'eager' : 'lazy'} />)}
+      </div>
+    )}
+
+    <nav class="siguiente">
+      <a href="/trabajos/" class="etiqueta">← Todos los trabajos</a>
+      <a href={`/trabajos/${sig.id}/`}>
+        <span class="etiqueta">Siguiente</span>
+        <span>{sig.data.cliente} <span class="tenue">‘{sig.data.titulo}’</span></span>
+      </a>
+    </nav>
   </article>
 </Base>
 <style>
-  .ficha { display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1.5rem; }
-  .ficha dt { color: var(--muted); }
+  .cab { margin: 14vh 0 2rem; }
+  .cab p { margin: 0 0 .6rem; }
+  h1 { font-size: clamp(1.8rem, 4.2vw, 3.6rem); line-height: 1.05; letter-spacing: -.03em; font-weight: 420; margin: 0; max-width: 24ch; }
+  .reproductor { width: 100%; aspect-ratio: 16 / 9; background: #0b0b0b; position: relative; object-fit: cover; }
+  .reproductor iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .ficha { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem 2rem; margin: 2rem 0 3rem; padding-top: 1.25rem; border-top: 1px solid var(--linea); }
+  .ficha .ancho { grid-column: 1 / -1; }
+  .ficha dt { margin-bottom: .35rem; }
   .ficha dd { margin: 0; }
+  .texto :global(p) { max-width: 60ch; color: #cfcfcf; }
+  .galeria { columns: 3 320px; column-gap: .6rem; }
+  .galeria img { width: 100%; margin-bottom: .6rem; break-inside: avoid; background: #0b0b0b; }
+  .siguiente { display: flex; justify-content: space-between; align-items: end; gap: 1rem; margin-top: 6rem; padding-top: 1.25rem; border-top: 1px solid var(--linea); }
+  .siguiente a:last-child { display: flex; flex-direction: column; align-items: flex-end; gap: .3rem; font-size: 1.2rem; text-align: right; }
+  .siguiente a:hover, .siguiente a:hover .tenue { color: var(--fg); }
 </style>

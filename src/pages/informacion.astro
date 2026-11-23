@@ -1,0 +1,50 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Información" description="Nahuel Lioi, director de fotografía y operador de cámara en Vigo. Trabaja con productoras y agencias en publicidad, videoclips y piezas de marca. Contacto y créditos.">
+  <div class="info">
+    <section class="bio">
+      <h1>Soy Nahuel Lioi, director de fotografía y operador de cámara en Vigo.</h1>
+      <p>Desde 2020 ruedo publicidad, videoclips y piezas de marca para productoras, agencias e instituciones. Me integro en el equipo donde haga falta: dirección de fotografía, cámara o iluminación, o llevo la imagen del proyecto de principio a fin.</p>
+      <p>Me interesa la imagen con intención: luz trabajada, planos que cuentan algo y una estética coherente con la marca o el artista.</p>
+    </section>
+
+    <section>
+      <h2 class="etiqueta">Contacto</h2>
+      <p class="grande"><a href="mailto:nahuelanxo@gmail.com">nahuelanxo@gmail.com</a><br /><a href="tel:+34653117364">+34 653 117 364</a></p>
+      <p class="tenue">Vigo, Galicia. Disponible para rodajes en toda España.</p>
+    </section>
+
+    <section>
+      <h2 class="etiqueta">Productoras y agencias</h2>
+      <p>VisualVR · TreceAmarillo · MINT · Fish&amp;Rock · DYR · Modelocero · Orixe Creative</p>
+    </section>
+
+    <section>
+      <h2 class="etiqueta">Artistas</h2>
+      <p>Quevedo · Sandra Monfort · Crúas · Javi Medina · Fran Laoren · Inés Manzano · El Chico López · Louband</p>
+    </section>
+
+    <section>
+      <h2 class="etiqueta">Clientes</h2>
+      <p>Concello de Sanxenxo · Concello de O Grove · Concello de Cambados · Balneario de Mondariz · Hotel Puente La Toja · Bodegas Vegamar · FEUGA</p>
+    </section>
+
+    <section>
+      <h2 class="etiqueta">Equipo</h2>
+      <p class="tenue">Pendiente: cámara, ópticas e iluminación propias.</p>
+    </section>
+  </div>
+</Base>
+<style>
+  .info { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3rem 2rem; margin-top: 14vh; }
+  .info section { grid-column: span 4; }
+  .info .bio { grid-column: 1 / -1; max-width: 62rem; }
+  h1 { font-size: clamp(1.6rem, 3.4vw, 2.9rem); line-height: 1.08; letter-spacing: -.025em; font-weight: 420; margin: 0 0 1.5rem; }
+  .bio p { font-size: 1.15rem; max-width: 52ch; color: #cfcfcf; }
+  h2 { margin: 0 0 .8rem; font-weight: 450; }
+  section p { margin: 0 0 .6rem; }
+  .grande { font-size: 1.3rem; }
+  .grande a:hover { color: var(--tenue); }
+  @media (max-width: 860px) { .info section { grid-column: 1 / -1; } }
+</style>

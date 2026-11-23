@@ -1,22 +1,13 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getCollection } from 'astro:content';
-const proyectos = (await getCollection('proyectos')).sort((a, b) => b.data.año - a.data.año);
+import ListaProyectos from '../../components/ListaProyectos.astro';
+import { publicados } from '../../lib/proyectos';
+const proyectos = await publicados();
 ---
-<Base title="Trabajos" description="Selección de trabajos: dirección de fotografía, cámara y fotografía para productoras, agencias y marcas.">
-  <h1>Trabajos</h1>
-  <ul class="lista">
-    {proyectos.map(p => (
-      <li data-categoria={p.data.categoria}>
-        <a href={`/trabajos/${p.id}/`}>
-          <strong>{p.data.titulo}</strong>
-          <span class="muted">{p.data.cliente}{p.data.productora && ` · ${p.data.productora}`} · {p.data.rol.join(', ')} · {p.data.año}</span>
-        </a>
-      </li>
-    ))}
-  </ul>
+<Base title="Trabajos" description="Trabajos de Nahuel Lioi como director de fotografía, operador de cámara, gaffer y fotógrafo: publicidad, videoclips, directo y fotografía.">
+  <h1 class="titulo-pag">Trabajos</h1>
+  <ListaProyectos proyectos={proyectos} filtros />
 </Base>
 <style>
-  .lista { list-style: none; padding: 0; display: grid; gap: 1rem; }
-  .lista a { display: flex; flex-direction: column; text-decoration: none; }
+  .titulo-pag { font-size: clamp(2rem, 5vw, 4rem); letter-spacing: -.03em; font-weight: 420; margin: 18vh 0 2rem; }
 </style>
