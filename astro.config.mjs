@@ -1,8 +1,10 @@
 import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
 
 // Las redirecciones mantienen vivos los enlaces de la web antigua (Fabrik) al cambiar el dominio.
 export default defineConfig({
   site: 'https://nahuelioi.com',
+  integrations: [sitemap()],
   trailingSlash: 'ignore',
   redirects: {
       "/sobre-mi": "/informacion/",
